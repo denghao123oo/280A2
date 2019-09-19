@@ -44,14 +44,31 @@ class DroneStore(object):
         self._last_id = 0
         self._conn = conn
 
-    def add(self, drone):
-        """ Adds a new drone to the store. """
-        if drone.id in self._drones:
-            raise Exception('Drone already exists in store')
+    def add(self, args):
+        cursor = connection.cursor()
+        if args is None:
+            print('!! name is required !!')
+        elif args[1] is None:
+            print('!! class is required !!')
         else:
-            self._last_id += 1
-            drone.id = self._last_id
-            self._drones[drone.id] = drone
+            dname = args[0]
+            dclass = args[1][7]
+            if args[2] is not None:
+                self._drones[dname] = Drone(dname, class_type = int(dclass), rescue = True)
+                query = 'select * from drone_info where drone_name = ' + dname + ' and class_type = ' + dclass + ' and rescue = "yes"'
+                cursor.execute(query)
+                records = cursor.fetchall()
+                for row in records:
+                    drone_id = str(row[0])
+                    print('Added rescue drone with ID 000'+drone_id)
+            else:
+                self._drones[dname] = Drone(dname, class_type = int(dclass), rescue = False)
+                query = 'select * from drone_info where drone_name = ' + dname + ' and class_type = ' + dclass
+                cursor.execute(query)
+                records = cursor.fetchall()
+                for row in records:
+                    drone_id = str(row[0])
+                    print('Added drone with ID 000'+drone_id)
 
     def remove(self, drone):
         """ Removes a drone from the store. """
@@ -67,10 +84,37 @@ class DroneStore(object):
         else:
             return self._drones[id]
 
-    def list_all(self):
-        """ Lists all the drones in the system. """
-        for drone in self._drones:
-            yield drone
+    def list_all(self, args):
+        query = 'select * from drone_info'
+        cursor = connection.cursor()
+        cursor.execute(query)
+        records = cursor.fetchall()
+        n = 0
+        if args is None:
+            print('ID Name Class Rescue Operator')
+            for row in records:
+                print(*row)
+                n += 1
+            print(n, 'drones listed')
+        else: 
+            if args[0] == '-rescue':
+                new_query = 'select * from drone_info where rescue = "yes"'
+            else:
+                dclass = int(args[0][7])
+                if dclass != 1 or 2:
+                    print('Unknown drone class n')
+                    return
+                new_query = 'select * from drone_info where class_type = ' + str(dclass)
+            cursor.execute(new_query)
+            info = cursor.fetchall()
+            if info is not None:
+                for row in info:
+                    print(*row)
+                    n += 1
+                print(n, 'drones listed')
+            else:
+                print('!! There are no drones for this criteria !!')
+            
 
     def allocate(self, drone, operator):
         """ Starts the allocation of a drone to an operator. """

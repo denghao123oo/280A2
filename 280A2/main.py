@@ -43,34 +43,7 @@ class Application(object):
                     print('!! %s !!' % (str(ex)))
 
     def add(self, args):
-        cursor = connection.cursor()
-        if args is None:
-            print('!! name is required !!')
-        elif args[1] is None:
-            print('!! class is required !!')
-        else:
-            dname = args[0]
-            dclass = args[1][7]
-            if args[2] is not None:
-                DroneStore.add(Drone(dname, class_type = int(dclass), rescue = true))
-                query = 'select * from drone_info where drone_name = ' + dname + ' and class_type = ' + dclass + ' and rescue = "yes"'
-                cursor.execute(query)
-                records = cursor.fetchall()
-                for row in records:
-                    id = str(row[0])
-                    print('Added rescue drone with ID 000'+id)
-            else:
-                DroneStore.add(Drone(dname, class_type = int(dclass), rescue = false))
-                query = 'select * from drone_info where drone_name = ' + dname + ' and class_type = ' + dclass
-                cursor.execute(query)
-                records = cursor.fetchall()
-                for row in records:
-                    id = str(row[0])
-                    print('Added drone with ID 000'+id)
-                
-        
-        
-        raise Exception("Add method has not been implemented yet")
+        self._drones.add(args)
 
     def allocate(self, args):
         """ Allocates a drone to an operator. """
@@ -86,38 +59,7 @@ class Application(object):
         print("* allocate id 'operator'")
 
     def list(self, args):
-        query = 'select * from drone_info'
-        cursor = connection.cursor()
-        cursor.execute(query)
-        records = cursor.fetchall()
-        n = 0
-
-        
-        if args is None:
-            print('ID Name Class Rescue Operator')
-            for row in records:
-                print(*row)
-                n += 1
-            print(n, 'drones listed')
-        else: 
-            if args[0] == '-rescue':
-                new_query = 'select * from drone_info where rescue = "yes"'
-            else:
-                dclass = int(args[0][7])
-                if dclass != 1 or 2:
-                    print('Unknown drone class n')
-                    return
-                new_query = 'select * from drone_info where class_type = ' + str(dclass)
-            cursor.execute(new_query)
-            info = cursor.fetchall()
-            if info is not None:
-                for row in info:
-                    print(*row)
-                    n += 1
-                print(n, 'drones listed')
-            else:
-                print('!! There are no drones for this criteria !!')
-            
+        self._drones.list_all(args)
         
 
     def remove(self, args):
@@ -125,8 +67,12 @@ class Application(object):
         raise Exception("Remove method has not been implemented yet")
 
     def update(self, args):
-        """ Updates the details for a drone. """
-        raise Exception("Update method has not been implemented yet")
+        if args is None:
+            print('ID is required')
+        else:
+            if args[0
+        
+        
 
 
 if __name__ == '__main__':
